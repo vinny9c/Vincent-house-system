@@ -287,7 +287,7 @@
 </div>
 
 <script>
-       document.addEventListener("DOMContentLoaded", loadData);
+        document.addEventListener("DOMContentLoaded", loadData);
 
     function loadData() {
         const props = JSON.parse(localStorage.getItem('properties')) || [];
@@ -324,6 +324,7 @@
         document.getElementById('printDate').innerText = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
         window.print();
     }
+
 </script>
 </body>
 </html>
