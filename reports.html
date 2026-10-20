@@ -32,6 +32,10 @@
             color: #007acc;
             margin: 0;
         }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
         .btn-dash {
             padding: 10px 20px;
             font-weight: bold;
@@ -41,8 +45,15 @@
             color: white;
             cursor: pointer;
         }
-        
-        /* Summary Metrics Cards Grid Component */
+        .btn-print-all {
+            padding: 10px 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -69,8 +80,6 @@
             font-size: 1.8rem;
             font-weight: bold;
         }
-
-        /* Detail Breakdown Lists */
         .report-section {
             background-color: #1a1a1a;
             padding: 20px;
@@ -84,14 +93,21 @@
             border-bottom: 1px solid #333;
             padding-bottom: 8px;
         }
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #252525;
-            font-size: 0.95rem;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
         }
-        .data-row:last-child { border-bottom: none; }
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        th {
+            background-color: #252525;
+            color: #aaa;
+        }
         .status-badge {
             padding: 2px 8px;
             border-radius: 4px;
@@ -100,17 +116,94 @@
         }
         .badge-paid { background-color: #28a74533; color: #28a745; }
         .badge-unpaid { background-color: #dc354533; color: #dc3545; }
+        .print-header-only { display: none; }
+
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none !important;
+                background-color: #ffffff !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .action-buttons, .header-bar {
+                display: none !important;
+            }
+            .print-header-only {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 30px;
+                border-bottom: 2px solid #000000;
+                padding-bottom: 10px;
+            }
+            .print-header-only h1 {
+                margin: 0;
+                font-size: 26px;
+                color: #000000;
+            }
+            .report-section {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin-bottom: 35px;
+                page-break-inside: avoid;
+            }
+            .metrics-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 10px !important;
+                margin-bottom: 30px !important;
+            }
+            .metric-card {
+                background-color: #ffffff !important;
+                border: 1px solid #000000 !important;
+                padding: 10px !important;
+            }
+            h3 {
+                color: #000000 !important;
+                border-bottom: 1px solid #000000 !important;
+            }
+            table {
+                background: #ffffff !important;
+                border: 1px solid #000000 !important;
+            }
+            th, td {
+                color: #000000 !important;
+                border-bottom: 1px solid #000000 !important;
+                background: #ffffff !important;
+            }
+            th {
+                background-color: #f0f0f0 !important;
+                font-weight: bold;
+            }
+            .status-badge {
+                background: none !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                font-weight: bold;
+            }
+        }
     </style>
 </head>
 <body>
 
+<div class="print-header-only">
+    <h1>VINCENT HOUSE SYSTEM - COMPLETE LANDLORD AND TENANT REPORT</h1>
+    <p>Generated on: <span id="printDate"></span></p>
+</div>
+
 <div class="container">
     <div class="header-bar">
         <h2>System Insights & Reports</h2>
-        <button class="btn-dash" onclick="location.href='dashboard.html'">DASHBOARD</button>
+        <div class="action-buttons">
+            <button class="btn-print-all" onclick="printFullReport()">Print Full Report</button>
+            <button class="btn-dash" onclick="location.href='dashboard.html'">Dashboard</button>
+        </div>
     </div>
     
-    <!-- Operational High Level Metric Aggregators -->
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="metric-title">Total Properties</div>
@@ -130,24 +223,78 @@
         </div>
     </div>
 
-    <!-- Section: Recent Revenue Transaction Log Statement -->
     <div class="report-section">
-        <h3>Recent Payment Ledger</h3>
-        <div id="paymentsLedgerContainer">
-            <!-- Dynamic data print lines map here -->
-        </div>
+        <h3>Properties Overview</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Rent</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="propsTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h3>Active Tenants Registry</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Property</th>
+                    <th>House No.</th>
+                </tr>
+            </thead>
+            <tbody id="tenantsTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h3>Registered Landlords</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody id="landlordsTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h3>Payment Ledger Log</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tenant Name</th>
+                    <th>Property</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="paymentsTableBody"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Collect parsing structures from sibling module datasets inside the system memory context
+       document.addEventListener("DOMContentLoaded", loadData);
+
+    function loadData() {
         const props = JSON.parse(localStorage.getItem('properties')) || [];
         const tenants = JSON.parse(localStorage.getItem('tenants')) || [];
         const payments = JSON.parse(localStorage.getItem('payments')) || [];
         const landlords = JSON.parse(localStorage.getItem('landlords')) || [];
 
-        // Compute numerical calculation aggregations
         document.getElementById('countProps').innerText = props.length;
         document.getElementById('countTenants').innerText = tenants.length;
         document.getElementById('countLandlords').innerText = landlords.length;
@@ -155,27 +302,28 @@
         const totalRevenue = payments
             .filter(p => p.status.toLowerCase() === 'paid')
             .reduce((sum, current) => sum + current.amount, 0);
-        
         document.getElementById('sumPayments').innerText = `Ksh ${totalRevenue.toLocaleString()}`;
 
-        // Populate recent transaction preview logs
-        const ledgerContainer = document.getElementById('paymentsLedgerContainer');
-        if (payments.length === 0) {
-            ledgerContainer.innerHTML = `<div class="data-row" style="color:#aaa;">No historical billing statements located inside this browser session instance.</div>`;
-        } else {
-            payments.slice(-5).reverse().forEach(p => {
-                const row = document.createElement('div');
-                row.className = 'data-row';
-                const badgeClass = p.status.toLowerCase() === 'paid' ? 'badge-paid' : 'badge-unpaid';
-                
-                row.innerHTML = `
-                    <span><strong>${p.tenantname}</strong> (${p.propertyname})</span>
-                    <span>Ksh ${p.amount.toLocaleString()} — <span class="status-badge ${badgeClass}">${p.status}</span></span>
-                `;
-                ledgerContainer.appendChild(row);
-            });
-        }
-    });
+        const propsBody = document.getElementById('propsTableBody');
+        propsBody.innerHTML = props.map(p => `<tr><td>${p.name}</td><td>${p.type}</td><td>${p.location}</td><td>Ksh ${p.rent.toLocaleString()}</td><td>${p.status}</td></tr>`).join('') || '<tr><td colspan="5">No records found.</td></tr>';
+
+        const tenantsBody = document.getElementById('tenantsTableBody');
+        tenantsBody.innerHTML = tenants.map(t => `<tr><td>${t.name}</td><td>${t.phone}</td><td>${t.property}</td><td>${t.houseNo}</td></tr>`).join('') || '<tr><td colspan="4">No records found.</td></tr>';
+
+        const landlordsBody = document.getElementById('landlordsTableBody');
+        landlordsBody.innerHTML = landlords.map(l => `<tr><td>${l.name}</td><td>${l.phone}</td><td>${l.email}</td><td>${l.address}</td></tr>`).join('') || '<tr><td colspan="4">No records found.</td></tr>';
+
+        const paymentsBody = document.getElementById('paymentsTableBody');
+        paymentsBody.innerHTML = payments.map(p => {
+            const badgeClass = p.status.toLowerCase() === 'paid' ? 'badge-paid' : 'badge-unpaid';
+            return `<tr><td>${p.tenantname}</td><td>${p.propertyname}</td><td>Ksh ${p.amount.toLocaleString()}</td><td>${p.date}</td><td><span class="status-badge ${badgeClass}">${p.status}</span></td></tr>`;
+        }).join('') || '<tr><td colspan="5">No records found.</td></tr>';
+    }
+
+    function printFullReport() {
+        document.getElementById('printDate').innerText = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+        window.print();
+    }
 </script>
 </body>
 </html>
