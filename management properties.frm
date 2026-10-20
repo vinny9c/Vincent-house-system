@@ -31,7 +31,7 @@ Begin VB.Form Form3
       Top             =   2640
       Width           =   2535
    End
-   Begin VB.TextBox Text2 
+   Begin VB.TextBox Text2 O
       Height          =   495
       Left            =   3720
       TabIndex        =   17
