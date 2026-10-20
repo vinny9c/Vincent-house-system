@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vincent House System - Payments</title>
+    <title>Vincent House System - Payments & Invoicing</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -71,6 +71,7 @@
         .btn-add { background-color: #28a745; color: white; }
         .btn-delete { background-color: #dc3545; color: white; }
         .btn-update { background-color: #ffc107; color: #111; }
+        .btn-print { background-color: #007acc; color: white; }
         .btn-dash { background-color: #6c757d; color: white; margin-left: auto; }
         
         .table-wrapper {
@@ -99,9 +100,56 @@
             background-color: #007acc33 !important;
             border-left: 4px solid #007acc;
         }
+
+        /* --- STYLESHEET RULES FOR PHYSICAL PRINTER PAPER COMPILING --- */
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none !important;
+                background-color: #ffffff !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            /* Hide input entry fields, action dashboards and navigation rows on paper */
+            .form-grid, .actions-bar, h2, th:last-child, td:last-child {
+                display: none !important;
+            }
+            table {
+                background: #ffffff !important;
+                border: 1px solid #000000 !important;
+            }
+            th, td {
+                color: #000000 !important;
+                border-bottom: 1px solid #000000 !important;
+            }
+            /* Insert custom invoice header visible only on physical print media */
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .print-header h1 {
+                margin: 0;
+                font-size: 24px;
+                color: #000000;
+            }
+        }
+        .print-header { display: none; }
     </style>
 </head>
 <body>
+
+<!-- Hidden elements styled via @media rules injected into printer queue processing -->
+<div class="print-header">
+    <h1>VINCENT HOUSE SYSTEM</h1>
+    <p>Monthly Rental Payment Invoice Statement</p>
+    <p>Date Generated: <span id="currentPrintDate"></span></p>
+</div>
 
 <div class="container">
     <h2>Payment Records Management</h2>
@@ -151,19 +199,19 @@
                     <th>Amount</th>
                     <th>Date</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="paymentsTableBody">
-                <!-- Data array bindings print lines dynamically here -->
+                <!-- Records print here dynamically -->
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // State collection array matching your old Form7 layout properties
-    let paymentRecords = JSON.parse(localStorage.getItem('payments')) || [
-        { id: 1, tenantname: "Vincent Muhindi", propertyname: "Kingcom", amount: 42000, date: "2026-10-20", status: "Unpaid" }
+     let paymentRecords = JSON.parse(localStorage.getItem('payments')) || [
+        { id: 1, tenantname: "Vincent Muhindi", propertyname: "Kingcom", amount: 42000, date: "2026-10-20", status: "Paid" }
     ];
     let selectedRowId = null;
 
@@ -182,6 +230,7 @@
                 <td>Ksh ${record.amount.toLocaleString()}</td>
                 <td>${record.date}</td>
                 <td>${record.status}</td>
+                <td><button class="btn-print" onclick="printReceipt(${record.id}); event.stopPropagation();">Print Receipt</button></td>
             `;
             
             tr.addEventListener('click', () => selectRow(record));
@@ -212,9 +261,32 @@
         renderTable();
     }
 
+    function printReceipt(id) {
+        const target = paymentRecords.find(r => r.id === id);
+        if(!target) return;
+
+        document.getElementById('currentPrintDate').innerText = new Date().toLocaleDateString();
+
+        const originalContent = tableBody.innerHTML;
+        tableBody.innerHTML = `
+            <tr>
+                <td>${target.id}</td>
+                <td>${target.tenantname}</td>
+                <td>${target.propertyname}</td>
+                <td>Ksh ${target.amount.toLocaleString()}</td>
+                <td>${target.date}</td>
+                <td><strong>${target.status}</strong></td>
+                <td></td>
+            </tr>
+        `;
+
+        window.print();
+        renderTable();
+    }
+
     document.getElementById('btnAdd').addEventListener('click', () => {
-        const tenant = document.getElementById('tenantName').value;
-        const property = document.getElementById('propertyName').value;
+        const tenant = document.getElementById('tenantName').value.trim();
+        const property = document.getElementById('propertyName').value.trim();
         const amt = document.getElementById('amount').value;
         const date = document.getElementById('paymentDate').value;
         const stat = document.getElementById('status').value;
@@ -240,8 +312,8 @@
 
         const idx = paymentRecords.findIndex(r => r.id === selectedRowId);
         if(idx !== -1) {
-            paymentRecords[idx].tenantname = document.getElementById('tenantName').value;
-            paymentRecords[idx].propertyname = document.getElementById('propertyName').value;
+            paymentRecords[idx].tenantname = document.getElementById('tenantName').value.trim();
+            paymentRecords[idx].propertyname = document.getElementById('propertyName').value.trim();
             paymentRecords[idx].amount = Number(document.getElementById('amount').value);
             paymentRecords[idx].date = document.getElementById('paymentDate').value;
             paymentRecords[idx].status = document.getElementById('status').value;
@@ -262,6 +334,7 @@
     });
 
     renderTable();
+
 </script>
 </body>
 </html>
