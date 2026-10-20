@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vincent House System - Manage Landlords</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #1e1e1e;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 {
+            color: #007acc;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            padding: 10px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+        }
+        input:focus {
+            border-color: #007acc;
+            outline: none;
+        }
+        .btn-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-add { background-color: #28a745; color: white; }
+        .btn-update { background-color: #ffc107; color: #111; }
+        .btn-delete { background-color: #dc3545; color: white; }
+        .btn-dash { background-color: #6c757d; color: white; margin-left: auto; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        th { color: #007acc; background-color: #252525; }
+        tr:hover { background-color: #2a2a2a; cursor: pointer; }
+        tr.selected { background-color: #007acc33 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Manage Landlords</h2>
+    
+    <div class="form-grid">
+        <input type="hidden" id="landlordId">
+        <div class="input-group">
+            <label>FULL NAMES</label>
+            <input type="text" id="fullNames">
+        </div>
+        <div class="input-group">
+            <label>PHONE NUMBER</label>
+            <input type="text" id="phone">
+        </div>
+        <div class="input-group">
+            <label>EMAIL ADDRESS</label>
+            <input type="email" id="email">
+        </div>
+        <div class="input-group">
+            <label>ADDRESS</label>
+            <input type="text" id="address">
+        </div>
+    </div>
+
+    <div class="btn-bar">
+        <button class="btn-add" id="addBtn">ADD</button>
+        <button class="btn-update" id="updateBtn">UPDATE</button>
+        <button class="btn-delete" id="deleteBtn">DELETE</button>
+        <button class="btn-dash" onclick="location.href='dashboard.html'">DASHBOARD</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Full Names</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody id="landlordsTable">
+            <!-- Data objects hook loop binds row items natively here -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Browser sandboxed state array mapping old table columns
+    let landlords = JSON.parse(localStorage.getItem('landlords')) || [
+        { id: 1, name: "Vincent Musyoka", phone: "0746341698", email: "vincent@musyoka.com", address: "Mombasa, Cluster B" }
+    ];
+    let selectedId = null;
+
+    const tableBody = document.getElementById('landlordsTable');
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        landlords.forEach(l => {
+            const tr = document.createElement('tr');
+            if(selectedId === l.id) tr.classList.add('selected');
+            tr.innerHTML = `<td>${l.name}</td><td>${l.phone}</td><td>${l.email}</td><td>${l.address}</td>`;
+            
+            // Grid element listener click sync route maps inside inputs (DataGrid1_Click match)
+            tr.addEventListener('click', () => {
+                selectedId = l.id;
+                document.getElementById('landlordId').value = l.id;
+                document.getElementById('fullNames').value = l.name;
+                document.getElementById('phone').value = l.phone;
+                document.getElementById('email').value = l.email;
+                document.getElementById('address').value = l.address;
+                renderTable();
+            });
+            tableBody.appendChild(tr);
+        });
+        localStorage.setItem('landlords', JSON.stringify(landlords));
+    }
+
+    // Command1_Click validation hook routine logic mappings
+    document.getElementById('addBtn').addEventListener('click', () => {
+        const name = document.getElementById('fullNames').value.trim();
+        if(!name) return alert("Please type the Landlord's name.");
+        
+        landlords.push({
+            id: Date.now(),
+            name: name,
+            phone: document.getElementById('phone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            address: document.getElementById('address').value.trim()
+        });
+        alert("Landlord added successfully.");
+        clearForm();
+    });
+
+    // Command2_Click row metric properties modifier route
+    document.getElementById('updateBtn').addEventListener('click', () => {
+        if(!selectedId) return alert("Select a target landlord first.");
+        const idx = landlords.findIndex(l => l.id === selectedId);
+        if(idx !== -1) {
+            landlords[idx].name = document.getElementById('fullNames').value.trim();
+            landlords[idx].phone = document.getElementById('phone').value.trim();
+            landlords[idx].email = document.getElementById('email').value.trim();
+            landlords[idx].address = document.getElementById('address').value.trim();
+            alert("Landlord updated successfully.");
+            clearForm();
+        }
+    });
+
+    // Command3_Click target dataset exclusion criteria loop logic validation hook
+    document.getElementById('deleteBtn').addEventListener('click', () => {
+        if(!selectedId) return alert("Select a target landlord first.");
+        if(confirm("Are you sure you want to delete this landlord?")) {
+            landlords = landlords.filter(l => l.id !== selectedId);
+            alert("Landlord records deleted.");
+            clearForm();
+        }
+    });
+
+    function clearForm() {
+        selectedId = null;
+        document.getElementById('landlordId').value = '';
+        document.getElementById('fullNames').value = '';
+        document.getElementById('phone').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('address').value = '';
+        renderTable();
+    }
+
+    renderTable();
+</script>
+</body>
+</html>

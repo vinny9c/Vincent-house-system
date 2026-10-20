@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vincent House System - Property Management</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #1e1e1e;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 {
+            color: #007acc;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            padding: 10px;
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+        }
+        input:focus, select:focus {
+            border-color: #007acc;
+            outline: none;
+        }
+        .btn-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-add { background-color: #28a745; color: white; }
+        .btn-update { background-color: #ffc107; color: #111; }
+        .btn-delete { background-color: #dc3545; color: white; }
+        .btn-dash { background-color: #6c757d; color: white; margin-left: auto; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        th { color: #007acc; background-color: #252525; }
+        tr:hover { background-color: #2a2a2a; cursor: pointer; }
+        tr.selected { background-color: #007acc33 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Management Properties</h2>
+    
+    <div class="form-grid">
+        <input type="hidden" id="propId">
+        <div class="input-group">
+            <label>PROPERTY NAME</label>
+            <input type="text" id="propName">
+        </div>
+        <div class="input-group">
+            <label>PROPERTY TYPE</label>
+            <input type="text" id="propType">
+        </div>
+        <div class="input-group">
+            <label>LOCATION</label>
+            <input type="text" id="location">
+        </div>
+        <div class="input-group">
+            <label>RENT AMOUNT</label>
+            <input type="number" id="rentAmount">
+        </div>
+        <div class="input-group">
+            <label>STATUS</label>
+            <select id="status">
+                <option value="Available">Available</option>
+                <option value="Rented">Rented</option>
+                <option value="Under Maintenance">Under Maintenance</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>DESCRIPTION</label>
+            <input type="text" id="description">
+        </div>
+    </div>
+
+    <div class="btn-bar">
+        <button class="btn-add" id="addBtn">ADD NEW</button>
+        <button class="btn-update" id="updateBtn">UPDATE</button>
+        <button class="btn-delete" id="deleteBtn">DELETE</button>
+        <button class="btn-dash" onclick="location.href='dashboard.html'">DASHBOARD</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Rent</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="propertiesTable">
+            <!-- Table data rows bind here dynamically -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Local data structure layout emulating your old Form3 ADODC bindings
+    let properties = JSON.parse(localStorage.getItem('properties')) || [
+        { id: 1, name: "Oakridge Apartments", type: "Apartment", location: "Mombasa", rent: 20000, status: "Available", desc: "2 BHK with balcony" }
+    ];
+    let selectedId = null;
+
+    const tableBody = document.getElementById('propertiesTable');
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        properties.forEach(p => {
+            const tr = document.createElement('tr');
+            if(selectedId === p.id) tr.classList.add('selected');
+            tr.innerHTML = `<td>${p.name}</td><td>${p.type}</td><td>${p.location}</td><td>Ksh ${p.rent}</td><td>${p.status}</td>`;
+            
+            // Sync click row logic (DataGrid1_Click equivalent)
+            tr.addEventListener('click', () => {
+                selectedId = p.id;
+                document.getElementById('propId').value = p.id;
+                document.getElementById('propName').value = p.name;
+                document.getElementById('propType').value = p.type;
+                document.getElementById('location').value = p.location;
+                document.getElementById('rentAmount').value = p.rent;
+                document.getElementById('status').value = p.status;
+                document.getElementById('description').value = p.desc;
+                renderTable();
+            });
+            tableBody.appendChild(tr);
+        });
+        localStorage.setItem('properties', JSON.stringify(properties));
+    }
+
+    // Command1_Click Handler: INSERT property row record
+    document.getElementById('addBtn').addEventListener('click', () => {
+        const name = document.getElementById('propName').value.trim();
+        if(!name) return alert("Enter a property name.");
+        
+        properties.push({
+            id: Date.now(),
+            name: name,
+            type: document.getElementById('propType').value.trim(),
+            location: document.getElementById('location').value.trim(),
+            rent: Number(document.getElementById('rentAmount').value),
+            status: document.getElementById('status').value,
+            desc: document.getElementById('description').value.trim()
+        });
+        alert("Property added successfully.");
+        clearForm();
+    });
+
+    // Command4_Click Handler: UPDATE row record
+    document.getElementById('updateBtn').addEventListener('click', () => {
+        if(!selectedId) return alert("Please select a property to update.");
+        const idx = properties.findIndex(p => p.id === selectedId);
+        if(idx !== -1) {
+            properties[idx].name = document.getElementById('propName').value.trim();
+            properties[idx].type = document.getElementById('propType').value.trim();
+            properties[idx].location = document.getElementById('location').value.trim();
+            properties[idx].rent = Number(document.getElementById('rentAmount').value);
+            properties[idx].status = document.getElementById('status').value;
+            properties[idx].desc = document.getElementById('description').value.trim();
+            alert("Property updated successfully.");
+            clearForm();
+        }
+    });
+
+    // Command2_Click Handler: DELETE row record
+    document.getElementById('deleteBtn').addEventListener('click', () => {
+        if(!selectedId) return alert("Please select a property to delete.");
+        if(confirm("Are you sure you want to delete this property?")) {
+            properties = properties.filter(p => p.id !== selectedId);
+            alert("Property deleted successfully.");
+            clearForm();
+        }
+    });
+
+    function clearForm() {
+        selectedId = null;
+        document.getElementById('propId').value = '';
+        document.getElementById('propName').value = '';
+        document.getElementById('propType').value = '';
+        document.getElementById('location').value = '';
+        document.getElementById('rentAmount').value = '';
+        document.getElementById('status').value = 'Available';
+        document.getElementById('description').value = '';
+        renderTable();
+    }
+
+    // Initialize display layout logic
+    renderTable();
+</script>
+</body>
+</html>

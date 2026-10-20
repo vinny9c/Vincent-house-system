@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vincent House System - Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .dashboard-card {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #007acc;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .grid-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .menu-btn {
+            background-color: #2d2d2d;
+            color: #ffffff;
+            border: 1px solid #444;
+            padding: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        .menu-btn:hover {
+            background-color: #007acc;
+            border-color: #007acc;
+            transform: translateY(-2px);
+        }
+        .logout-btn {
+            background-color: #cc3333;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+        .logout-btn:hover {
+            background-color: #992222;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-card">
+        <h1 id="welcomeGreeting">Welcome</h1> 
+        
+        <div class="grid-menu">
+            <button class="menu-btn" onclick="location.href='properties.html'">Management Properties</button>
+            <button class="menu-btn" onclick="location.href='rentals.html'">Manage Rentals</button>
+            <button class="menu-btn" onclick="location.href='tenants.html'">Manage Tenants</button>
+            <button class="menu-btn" onclick="location.href='landlords.html'">Manage Landlords</button>
+            <button class="menu-btn" onclick="location.href='payments.html'">Payments</button>
+            <button class="menu-btn" onclick="location.href='reports.html'">Reports</button>
+        </div>
+
+        <button class="logout-btn" id="logoutBtn">Log Out</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const loggedInUser = sessionStorage.getItem("loggedinuser") || "User";
+            document.getElementById("welcomeGreeting").innerText = `Welcome, ${loggedInUser}`;
+        });
+
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            if (confirm("Are you sure you want to logout?")) {
+                sessionStorage.removeItem("loggedinuser");
+                window.location.href = "index.html"; 
+            }
+        });
+    </script>
+</body>
+</html>

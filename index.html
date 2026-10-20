@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Management System - Authentication</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .auth-container {
+            background-color: #1e1e1e;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #007acc;
+            font-family: 'Segoe UI', sans-serif;
+            margin-bottom: 25px;
+            font-size: 1.35rem;
+            letter-spacing: 1px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+        input {
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: #2d2d2d;
+            color: white;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .btn-primary {
+            background-color: #007acc;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #555;
+            color: white;
+        }
+        .toggle-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        .toggle-link span {
+            color: #007acc;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <h2>RENTAL MANAGEMENT SYSTEM</h2>
+        
+        <!-- LOGIN STATE VIEW CONTAINER (Command1_Click structural logic mapping) -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="loginUser" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPass" required autocomplete="current-password">
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn-primary">Login</button>
+            </div>
+            <div class="toggle-link">
+                Don't have an account? <span onclick="toggleAuthMode()">Register here</span>
+            </div>
+        </form>
+
+        <!-- REGISTRATION STATE VIEW CONTAINER (Command2_Click structural logic mapping) -->
+        <form id="registerForm" class="hidden">
+            <div class="form-group">
+                <label>Choose Username</label>
+                <input type="text" id="regUser" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Choose Password</label>
+                <input type="password" id="regPass" required autocomplete="new-password">
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn-primary">Register Account</button>
+                <button type="button" class="btn-secondary" onclick="toggleAuthMode()">Back</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Local state browser system emulating your ADODB record arrays
+        let userDatabase = JSON.parse(localStorage.getItem('users')) || [
+            { username: "vincent", password: "password123" }
+        ];
+
+        function toggleAuthMode() {
+            document.getElementById('loginForm').classList.toggle('hidden');
+            document.getElementById('registerForm').classList.toggle('hidden');
+        }
+
+        // --- SUBMIT REQUEST HANDLER: LOGIN (Command1_Click validation) ---
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+
+            if (!user || !pass) {
+                alert("Please complete all input metrics.");
+                return;
+            }
+
+            // Validates local array records matching SQL statement parameters
+            const authenticatedUser = userDatabase.find(
+                u => u.username.toLowerCase() === user.toLowerCase() && u.password === pass
+            );
+
+            if (authenticatedUser) {
+                // Instantiates identity token into current active window session
+                sessionStorage.setItem("loggedinuser", authenticatedUser.username);
+                alert(`Login successful. Welcome ${authenticatedUser.username}`);
+                window.location.href = "dashboard.html"; // Relocates user directly to Dashboard panel
+            } else {
+                alert("Invalid username or password.");
+                document.getElementById('loginPass').value = '';
+                document.getElementById('loginPass').focus();
+            }
+        });
+
+        // --- SUBMIT REQUEST HANDLER: REGISTRATION (Command2_Click duplication checking) ---
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+
+            if (!user || !pass) {
+                alert("Please enter values into both fields.");
+                return;
+            }
+
+            // Replicates uniqueness check condition logic
+            const isNameTaken = userDatabase.some(u => u.username.toLowerCase() === user.toLowerCase());
+
+            if (isNameTaken) {
+                alert("This username is already taken. Please choose another one.");
+                return;
+            }
+
+            // Save object item data row entry straight back into cloud/local repository instance
+            userDatabase.push({ username: user, password: pass });
+            localStorage.setItem('users', JSON.stringify(userDatabase));
+
+            alert("Account registered successfully! You can now log in.");
+            document.getElementById('registerForm').reset();
+            toggleAuthMode();
+            document.getElementById('loginUser').value = user;
+            document.getElementById('loginPass').focus();
+        });
+    </script>
+</body>
+</html>
